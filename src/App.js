@@ -1,8 +1,10 @@
 // App.js
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import './App.css'
 import supabase from './supabaseClient'
 import Modal from 'react-modal'
+
+/// imagem >>>
 
 Modal.setAppElement('#root')
 
@@ -13,6 +15,7 @@ function App() {
   const [description, setDescription] = useState('')
   const [modal, setModal] = useState([])
   const [newDescription, setNewDescription] = useState('')
+  const [file, setFile] = useState([])
   async function loading() {
     const { data, error } = await supabase.from('post').select('*')
     setPosts(data)
@@ -31,16 +34,35 @@ function App() {
       console.log('error')
     }
   }
+  /// Uploand da imagem no Storage
+  const folterPath = 'imagensProfile' // name da pasta que se encontra no sorange !!!
   async function postar() {
     try {
       const { data, error } = await supabase
         .from('post')
-        .insert([{ idUser: 1, description: description }])
+        .insert([
+          {
+            idUser: 1,
+            description: description,
+            phots: `https://ummrcakwdaeufujhnvrv.supabase.co/storage/v1/object/public/imagensProfile/${file.name}`
+          }
+        ])
         .select()
-      console.log(error)
+
+      const { imgData, imgError } = await supabase.storage
+        .from(folterPath)
+        .upload(file.name, file)
       loading()
-    } catch (error) {}
+    } catch (error) {
+      console.log(error)
+    }
   }
+
+  function handleFileChange(e) {
+    const file = e.target.files[0]
+    setFile(file)
+  }
+
   const customStyles = {
     content: {
       top: '50%',
@@ -77,6 +99,7 @@ function App() {
       closeModal()
     } catch (error) {}
   }
+
   return (
     <div className="App">
       <h1>Postagens</h1>
@@ -85,6 +108,8 @@ function App() {
           onChange={e => setDescription(e.target.value)}
           className="postagem"
         />
+        <input type="file" onChange={handleFileChange} />
+
         <button onClick={postar} className="postar">
           Postar
         </button>
@@ -93,6 +118,9 @@ function App() {
       <div className="post-list">
         {posts.map(post => (
           <div key={post.idPost} className="post-card">
+            <div>
+              <img src={post.phots} />
+            </div>
             <h2>{post.description}</h2>
             <p>{post.content}</p>
             <span className="author">Author: {post.idUser}</span>
@@ -116,6 +144,9 @@ function App() {
                           <div key={item.idPost}>
                             <div>{item.idPost}</div>
                             <div>{item.description}</div>
+                            <div>
+                              <img src={item.phots} />
+                            </div>
                             <br />
                             <input
                               onChange={e => setNewDescription(e.target.value)}

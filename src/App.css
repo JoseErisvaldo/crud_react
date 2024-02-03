@@ -31,6 +31,9 @@
   display: flex;
   flex-direction: column;
 }
+img {
+  height: 100px;
+}
 h2 {
   text-overflow: ellipsis;
   overflow: hidden;
